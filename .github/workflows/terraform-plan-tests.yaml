@@ -42,5 +42,10 @@ jobs:
         run: terraform validate
 
       - name: Terraform test
-        working-directory: ${{ matrix.module }}
-        run: terraform test -test-directory=tests/plan
+        id: terraform-test
+        uses: Home-Office-Digital/core-cloud-workflow-terraform-actions/actions/test@main
+        with:
+          working-directory: ${{ matrix.module }}
+          test-directory: tests/plan
+          sonar-host-url: ${{ secrets.SONAR_HOST_URL }}
+          sonar-token: ${{ secrets.SONAR_TOKEN }}
