@@ -1,0 +1,46 @@
+name: Terraform Plan Tests
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  terraform-plan-tests:
+    name: Terraform Plan Tests (${{ matrix.module }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Modules with plan-level tests under tests/plan/.
+        # Add new module dirs here as coverage is extended across the repo.
+        module:
+          - modules/aws/groups
+          - modules/aws/users
+          - modules/aws/permission_sets
+          - modules/aws/kms
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+
+      - name: Terraform init
+        working-directory: ${{ matrix.module }}
+        run: terraform init -backend=false
+
+      - name: Terraform validate
+        working-directory: ${{ matrix.module }}
+        run: terraform validate
+
+      - name: Terraform test
+        working-directory: ${{ matrix.module }}
+        run: terraform test -test-directory=tests/plan
