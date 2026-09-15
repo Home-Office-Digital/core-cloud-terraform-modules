@@ -9,7 +9,7 @@
 mock_provider "aws" {
   mock_data "aws_secretsmanager_secret_version" {
     defaults = {
-      secret_string = "{\"splunk-hec-token\":\"hec-abc123\",\"webhook\":\"https://example.gov.uk/hook\"}"
+      secret_string = "{\"splunk-hec-token\":\"dummy-token-not-a-secret\",\"webhook\":\"https://example.gov.uk/hook\"}"
     }
   }
 }
@@ -22,7 +22,7 @@ run "decodes_secret_and_projects_outputs" {
   }
 
   assert {
-    condition     = output.hec_token == "hec-abc123"
+    condition     = output.hec_token == "dummy-token-not-a-secret"
     error_message = "hec_token output should be the splunk-hec-token value from the decoded secret."
   }
 
