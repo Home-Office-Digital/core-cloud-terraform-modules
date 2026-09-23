@@ -1,0 +1,73 @@
+name: Terraform Plan Tests
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  terraform-plan-tests:
+    name: Terraform Plan Tests (${{ matrix.module }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Modules with plan-level tests under tests/plan/.
+        # Add new module dirs here as coverage is extended across the repo.
+        module:
+          - modules/aws/ai_opt_out
+          - modules/aws/backup_vault
+          - modules/aws/cost_usage_reports
+          - modules/aws/enable-inspectorv2
+          - modules/aws/event_bridge/event_bridge_rule
+          - modules/aws/group_account_assignments
+          - modules/aws/group_user_memberships
+          - modules/aws/groups
+          - modules/aws/inspectorv2
+          - modules/aws/kms
+          - modules/aws/logging/cw-logs-destination
+          - modules/aws/networking/acp-peering-attachment
+          - modules/aws/networking/alb
+          - modules/aws/networking/ctn-connect-attachment
+          - modules/aws/networking/eip
+          - modules/aws/networking/ingress/acm
+          - modules/aws/networking/ingress/alb
+          - modules/aws/networking/ingress/dns-isolated/route53-public-zone
+          - modules/aws/networking/ingress/private-subnets
+          - modules/aws/networking/ingress/route53-public-zone
+          - modules/aws/networking/nlb
+          - modules/aws/networking/tgw-peering-attachments
+          - modules/aws/networking/tgw-static-routes
+          - modules/aws/networking/tgw-vpc-attachment
+          - modules/aws/permission_sets
+          - modules/aws/secrets/fetch-secret
+          - modules/aws/ssoadmin_instance
+          - modules/aws/tenant_metadata/api_gateway
+          - modules/aws/tenant_metadata/iam
+          - modules/aws/users
+          - modules/products/static-site
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+
+      - name: Terraform init
+        working-directory: ${{ matrix.module }}
+        run: terraform init -backend=false
+
+      - name: Terraform validate
+        working-directory: ${{ matrix.module }}
+        run: terraform validate
+
+      - name: Terraform test
+        working-directory: ${{ matrix.module }}
+        run: terraform test -test-directory=tests/plan
