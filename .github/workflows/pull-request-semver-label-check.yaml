@@ -22,18 +22,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Parse the SemVer label
         id: label
-        uses: UKHomeOffice/match-label-action@v1
+        uses: Home-Office-Digital/core-cloud-match-label-action@a8e8e2690df0a1f72550875a29a73574fdefe5ad # v1.0.10
         with:
           labels: minor,major,patch
           mode: singular
 
       - name: Calculate SemVer value
         id: calculate
-        uses: UKHomeOffice/semver-calculate-action@v2
+        uses: Home-Office-Digital/core-cloud-semver-calculate-action@fd7e1629eda3b5d3cd037d4145d49db12a352c8e # v2.0.7
         with:
           increment: ${{ steps.label.outputs.matchedLabels }}
           github_token: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,61 @@
+name: Dependabot Approval Issue
+
+# Creates a tracking issue whenever Dependabot opens a pull request, so an
+# engineer is prompted to review, approve and merge the update.
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+
+permissions:
+  contents: read
+
+jobs:
+  create-approval-issue:
+    # Only run for PRs raised by Dependabot
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: read
+    steps:
+      - name: Create approval tracking issue
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+
+            // Avoid duplicates: skip if an issue already references this PR.
+            const marker = `dependabot-pr:${pr.number}`;
+            const existing = await github.rest.search.issuesAndPullRequests({
+              q: `repo:${context.repo.owner}/${context.repo.repo} is:issue is:open in:body "${marker}"`,
+            });
+            if (existing.data.total_count > 0) {
+              core.info(`Tracking issue already exists for PR #${pr.number}`);
+              return;
+            }
+
+            const body = [
+              `A Dependabot update is awaiting engineer review, approval and merge.`,
+              ``,
+              `**Pull request:** #${pr.number} — ${pr.title}`,
+              `**Link:** ${pr.html_url}`,
+              ``,
+              `### Action required`,
+              `- [ ] Review the proposed dependency change`,
+              `- [ ] Confirm CI checks pass`,
+              `- [ ] Approve the pull request`,
+              `- [ ] Merge the pull request`,
+              ``,
+              `<!-- ${marker} -->`,
+            ].join('\n');
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Review Dependabot update: ${pr.title}`,
+              body,
+              labels: ['dependencies', 'needs-review'],
+            });
