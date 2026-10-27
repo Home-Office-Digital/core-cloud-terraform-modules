@@ -1,0 +1,69 @@
+version: 2
+updates:
+    # Enable Github Action updates
+    - package-ecosystem: "github-actions"
+      directory: "/"
+      schedule:
+          interval: "daily"
+      commit-message:
+          prefix: "chore(GHA)"
+      labels:
+          - "dependencies"
+          - "patch"
+          - "actions"
+      groups:
+          # One group for everything, majors included, since an action
+          # major is usually just a runtime bump
+          github-actions-all:
+              patterns:
+                  - "*"
+              update-types:
+                  - "minor"
+                  - "patch"
+                  - "major"
+
+    # Enable TF updates for Terraform Projects
+    - package-ecosystem: "terraform"
+      directory: "/"
+      schedule:
+          interval: "daily"
+      commit-message:
+          prefix: "chore(TF)"
+      labels:
+          - "dependencies"
+          - "patch"
+          - "terraform"
+      groups:
+          terraform-security:
+              applies-to: security-updates
+              patterns:
+                  - "*"
+          terraform-minor-and-patch:
+              applies-to: version-updates
+              update-types:
+                  - "minor"
+                  - "patch"
+
+    # Enable PIP updates for Python Projects
+    - package-ecosystem: "pip"
+      directory: "/"
+      schedule:
+          interval: "daily"
+      commit-message:
+          prefix: "chore(Python)"
+      labels:
+          - "dependencies"
+          - "patch"
+          - "python"
+      groups:
+          # Grouped by update-type, not dependency-type: Dependabot treats
+          # everything in pyproject.toml as a production dependency
+          python-security:
+              applies-to: security-updates
+              patterns:
+                  - "*"
+          python-minor-and-patch:
+              applies-to: version-updates
+              update-types:
+                  - "minor"
+                  - "patch"
